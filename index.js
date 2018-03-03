@@ -1,23 +1,60 @@
 const TelegramBot = require('node-telegram-bot-api');
-var mongoose = require('mongoose');
-var fs = require('fs');
+const mongoose = require('mongoose');
+const fs = require('fs');
 
 var strings = {
-    'twice': "شما قبلا در این نظرسنجی شرکت کرده‌اید!",
-    'name': "لطفا نام و نام خانوادگی خود را در صورت تمایل وارد کنید.",
-    'melliCode': "لطفا کد ملی خود را در صورت تمایل وارد کنید.",
-    'mobile': "لطفا شماره‌ی موبایل خود را در صورت تمایل وارد کنید.",
-    'choice1': "کاملا موافق",
-    'choice2': "مجموعا موافق",
-    'choice3': "ممتنع",
-    'choice4': "محموعا مخالف",
-    'choice5': "کاملا مخالف",
+  'twice': "شما قبلا در این نظرسنجی شرکت کرده‌اید!",
+  'name': "لطفا نام و نام خانوادگی خود را در صورت تمایل وارد کنید.",
+  'melliCode': "لطفا کد ملی خود را در صورت تمایل وارد کنید.",
+  'mobile': "لطفا شماره‌ی موبایل خود را در صورت تمایل وارد کنید.",
+  'welcome': "به نام خدا\n" +
+  "\n" +
+  "فرم نظرسنجی آئین‌نامۀ متراژ غرفه نمایشگاه\n" +
+  " \n" +
+  "نظرخواهی زیر به ‌منظور جمع‌بندی نظر ناشران کودک ‌و ‌نوجوان در نحوه‌ي محاسبه‌ي متراژ غرفه در نمایشگاه بین‌المللی کتاب تهران ارائه مي‌شود.\n" +
+  "از شما تقاضا داریم با صرف چند دقیقه از وقت خود زمینه‌ي مثبت برای تدوین اين آیین‌نامه را فراهم آوريد.\n" +
+  " \n" +
+  "مقدمه: در این آیین‌نامه ملاک‌ محاسبه‌ي متراژ هر موسسه‌‌ي انتشاراتی بر مبنای آیین‌نامه بالا‌دستی مصوب نمایشگاه بین‌المللی کتاب تهران شرح داده شده است.\n" +
+  "روش محاسبه متراژ غرفه‌ي هر ناشر به این شرح است که در ابتدا بر مبنای این آیین‌نامه امتیاز هر  متقاضی محاسبه خواهد شد. سپس، امتیاز کل ناشران تقسیم بر متراژ کل غرفه‌ي موجود در سالن کودک خواهد شد. حاصل این تقسیم عددي پایه است که تعیین می‌کند در ازاي چند امتیاز، یک متر مربع غرفه به ناشر تعلق خواهد گرفت. از اینجا به بعد، با تقسیم امتیاز هر متقاضی بر عدد پایه‌ي متراژ غرفه آن شرکت‌کننده تعیین خواهد شد. البته به دلیل محدودیت سیستم غرفه‌بندی، برای متراژ هر غرفه اعداد رُند شده تعیین خواهد شد.\n" +
+  " \n" +
+  "تذکر۱- ملاک محاسبه‌ي بيشتر موارد آیین‌نامه‌ي زیر، عناوین چاپ‌شده‌ي ناشر در چهار سال گذشته شمسی است.\n" +
+  "تذکر۲- مرجع تأیید تمام اطلاعات آماری زیر وب‌سایت خانه کتاب خواهد بود و در صورت عدم دسترسی به هر یک، آن مورد يا موارد از آیین‌نامه‌ي محاسباتی حذف خواهد شد." + "\n\n" +
+  "لطفا هم اکنون برای هر کدام از سوال‌ها یکی از گزینه‌های موردنظر را انتخاب کنید.",
+  'choice1': "کاملا موافق",
+  'choice2': "مجموعا موافق",
+  'choice3': "ممتنع",
+  'choice4': "محموعا مخالف",
+  'choice5': "کاملا مخالف",
+  'questions': [
+    '1-  هر عنوان کتاب تجدید چاپ در چهار سال گذشته : يك امتیاز (موارد تکراری تجدید چاپ یک کتاب در یک سال حذف خواهند شد.)',
+    ' 2- هر عنوان چاپ اول در چهار سال گذشته: دو امتیاز.',
+    ' 3 - به هر یک از موارد چاپ اول یا تجدید چاپ که تألیفی باشند، ضریب دو تعلق خواهد گرفت.',
+    '4-  برای هر پانصد نسخه تیراژ کتاب مورد نظر، نیم امتیاز تعلق خواهد گرفت.',
+    '5-  بر اساس تعداد کل صفحه‌هاي کتاب رنگی به ازای هر شانزده صفحه، نیم امتیاز افزوده خواهد شد.',
+    '6- بر اساس تعداد کل صفحه‌هاي کتاب تک‌رنگ به ازای هر چهل و هشت صفحه، نیم امتیاز افزوده خواهد شد.',
+    '7- برای کتاب با قطع رحلی و بزرگ‌تر، ضریب یک و نیم اعمال خواهد شد.',
+    '8- برای هر کتاب دست‌ساز مانند کتب شکفتنی یا پارچه‌ای، یا فومی دست ساز، ضریب دو تعلق خواهد گرفت.',
+    '9- برای عناوین تألیفیِ ویژه، مانند دایره‌المعارف‌ها یا کتاب‌های مرجع رنگی به تشخیص شورای کارشناسی، ضریب‌های زیر در نظر گرفته خواهد شد:\n' +
+    'ـ تا 150 صفحه پنج امتیاز\n' +
+    'ـ 150 تا 300 صفحه، ده امتیاز\n' +
+    'ـ 300 صفحه به بالا، پانزده امتیاز',
+    ' 10- يك امتیاز به ازای هر سال سابقه‌ي نشر کتاب کودک و نوجوان اضافه خواهد شد.',
+    '11- کسب عنوان ناشر سال، هر بار بیست امتیاز  .',
+    ' 12- کسب عنوان ناشر تقدیری سال ، هر بار ده امتیاز.',
+    '13- کسب عنوان ناشر برگزیده‌ي (نمونه) نمایشگاه ، هر بار ده امتیاز.',
+    ' 14- کسب عنوان ناشر تقدیری نمایشگاه،  هر بار پنج امتیاز.',
+    '15- کسب عنوان کتاب سال جمهوری اسلامی ایران، هر کتاب ده امتیاز.',
+    '16- کسب عنوان کتاب تقدیری سال جمهوری اسلامی ایران، هر کتاب پنج امتیاز.',
+    '17- کسب عنوان کتاب برگزیده از جشنواره‌های معتبر کتاب، طی چهار سال گذشته، هر عنوان پنج امتیاز.',
+    '18- کسب عنوان کتاب تقدیری یا معادل آن از جشنواره‌های معتبر کتاب، طی چهار سال گذشته، هر عنوان دو و نیم امتیاز .',
+    '19- کتاب شناخته‌شده به‌عنوان کتاب مناسب جشنواره‌ي رشد، طی چهار سال گذشته، هر کتاب نیم امتیاز .',
+    '20- با تخلفات هر متقاضی در نمایشگاههای چهار سال گذشته طبق آییننامه کمیسیون تخلفات برخورد خواهد شد.'
+  ]
 }
 
 
 var token = ""
-createBot()
-/*
+//createBot()
 fs.readFile('token.txt', 'utf8', function (err, data) {
     if (err) {
         console.log('token read error!')
@@ -26,7 +63,6 @@ fs.readFile('token.txt', 'utf8', function (err, data) {
     createBot();
     console.log(token)
 });
-*/
 
 mongoose.connect('mongodb://localhost/savesampad');
 
@@ -34,152 +70,89 @@ var db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error:'));
 
-db.once('open', function() {
-    console.log('db connect')
+db.once('open', function () {
+  console.log('db connect')
 });
 
 
 var userSchema = mongoose.Schema({
-    chatId: Number,
-    username: String,
-    first_name: String,
-    last_name: String,
-    name: String,
-    typeOfConnection: String,
-    email: String,
-    school: String,
-    university: String,
-    description: String,
-    state: Number,
+  chatId: Number,
+  name: String,
+  email: String,
+  answers: [String],
+  state: Number,
 });
-
-userSchema.plugin(mongooseToCsv, {
-    headers: 'Name typeOfConnection School University Email Description username first_name last_name chatId state',
-    constraints: {
-        'Name': 'name',
-        'typeOfConnection': 'typeOfConnection',
-        'School': 'school',
-        'University': 'university',
-        'Description': 'description',
-        'Email': 'email',
-        'username': 'username',
-        'first_name': 'first_name',
-        'last_name': 'last_name',
-        'state': 'state',
-        'chatId': 'chatId',
-    }
-})
-
 var userModel = mongoose.model('userModel', userSchema)
 
-// Create a bot that uses 'polling' to fetch new updates
-
-var bot
 function createBot() {
-    bot = new TelegramBot(token, {polling: true});
-    bot.on('message', (msg) => {
-        const chatId = msg.chat.id
-        if(chatId == 57692552 || msg.username == adminUsernames[0] || msg.username == adminUsernames[1] || msg.username == adminUsernames[2]) {
-            if(msg.text == '/excel') {
-                createCSV(chatId)
-                return
-            } else if(msg.text == '/count') {
-                userModel.count({}, function (err, data) {
-                    if(err) {
-                        throw err
-                        return
-                    }
-                    bot.sendMessage(chatId, "Count is "+data.toString())
-                })
-                return
+  const bot = new TelegramBot(token, {polling: true});
+  bot.on('message', (msg) => {
+    const chatId = msg.chat.id
+    userModel.findOne({'chatId': chatId}, function (err, user) {
+      if (err)
+        throw err
+      if (msg.text == 'reset') {
+        console.log(user)
+        user['state'] = 0
+        user.name = ''
+        user.email = ''
+        user.answers = []
+        user.save()
+      } else if (user) {
+        if (user.state == 0) {
+          bot.sendMessage(chatId, strings['welcome'])
+          setTimeout(() => {bot.sendMessage(chatId, strings['questions'][0], {
+            "reply_markup": {
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+            }})}, 500)
+        } else if (user.state < 19) {
+          user['answers'].push(msg.text)
+          bot.sendMessage(chatId, strings['connection'], {
+            "reply_markup": {
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
             }
+          })
+        } else if(user.state == 19) {
+          user['answers'].push(msg.text)
+          bot.sendMessage(chatId, strings['connection'], {
+            "reply_markup": {
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+              "one_time_keyboard": true
+            }
+          })
+        } else if(user.state == 20) {
+          user['answers'].push(msg.text)
+          bot.sendMessage(chatId, strings['name']+strings['ignore'])
+        } else if(user.state == 21) {
+          if(msg.text != '/next') {
+            user['name'] = msg.text
+          }
+          bot.sendMessage(chatId, strings['melliCode']+strings['ignore'])
+        } else if(user.state == 22) {
+          if(msg.text != '/next') {
+            user['melliCode'] = msg.text
+          }
+          bot.sendMessage(chatId, strings['mobile']+strings['ignore'])
+        } else if(user.state == 23) {
+          if(msg.text != "/next") {
+            user['mobile'] = msg.text
+          }
+          bot.sendMessage(chatId, strings['end'])
+        } else if(user.state > 23) {
+          bot.sendMessage(chatId, strings['twice'])
         }
-        userModel.findOne({'chatId': chatId}, function (err, user) {
-            if(err)
-                throw err
-            if(msg.text == 'reset') {
-                console.log(user)
-                user['state'] = 0
-                user.name = ''
-                user.school = ''
-                user.university = ''
-                user.description = ''
-                user.typeOfConnection = ''
-                user.email = ''
-                user.save()
-            } else
-            if(user) {
-                if(user.state == 0) {
-                    bot.sendMessage(chatId, strings['welcome'])
-                    setTimeout(() => {bot.sendMessage(chatId, strings['name'])}, 500)
-                }
-                if(user.state == 1) {
-                    user['name'] = msg.text
-                    user['state'] += 1
-                    bot.sendMessage(chatId, strings['connection'], {
-                        "reply_markup": {
-                            "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3'], strings['choice4']], [strings['choice5'], strings['choice6']], [strings['choice7']]],
-                            "one_time_keyboard": true
-                        }
-                    })
-                } else if(user.state == 2) {
-                    user['typeOfConnection'] = msg.text
-                    user['state'] += 1
-                    bot.sendMessage(chatId, strings['school'])
-                } else if(user.state == 3) {
-                    user['school'] = msg.text
-                    user['state'] += 1
-                    bot.sendMessage(chatId, strings['university'])
-                } else if(user.state == 4) {
-                    user['university'] = msg.text
-                    user['state'] += 1
-                    bot.sendMessage(chatId, strings['email'], {parse_mode: 'Markdown'})
-                } else if(user.state == 5) {
-                    if(msg.text != '/next') {
-                        user['email'] = msg.text
-                    }
-                    user['state'] += 1
-                    bot.sendMessage(chatId, strings['description'], {parse_mode: "Markdown"})
-                } else if(user.state == 6) {
-                    user['description'] = msg.text
-                    bot.sendMessage(chatId, strings['savesuccessful'])
-                    user['state'] += 1
-
-                } else if (user.state > 6) {
-                    bot.sendMessage(chatId, strings['twice'])
-                }
-                else {
-                    user['state'] = 1
-                }
-                user.save()
-            } else {
-                bot.sendMessage(chatId, strings['welcome'])
-                setTimeout(() => {bot.sendMessage(chatId, strings['name'])}, 500)
-                userModel.create({'chatId': chatId, 'state': 1, 'first_name': msg.first_name, 'last_name': msg.last_name, 'username': msg.username}, function (err, data) {
-                    if (err) return handleError(err)
-                })
-            }
+        user['state'] += 1
+        user.save()
+      } else {
+        bot.sendMessage(chatId, strings['welcome'])
+        setTimeout(() => {bot.sendMessage(chatId, strings['name'])},500)
+        userModel.create({
+          'chatId': chatId,
+          'state': 1,
+        }, function (err, data) {
+          if (err) return handleError(err)
         })
+      }
     })
-}
-
-function createCSV(chatId) {
-    /*
-    var date = new Date()
-    userModel.find({}, function (err, data) {
-        fs.createWriteStream('users'+date.getHours().toString()+'.csv')
-    })
-    stream.on('finish', function () {
-        bot.sendDocument(chatId, stream)
-    })
-    */
-
-    userModel.find({}, function (err, data) {
-        var model = mongoXlsx.buildDynamicModel(data);
-        mongoXlsx.mongoData2Xlsx(data, model, function(err, data) {
-            bot.sendMessage(chatId, 'File saved at:', data.fullPath)
-            bot.sendDocument(chatId, data.fullPath);
-        });
-    })
-
+  })
 }
