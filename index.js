@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 
 var strings = {
+  'ignore': '\n'+'در غیر این صورت بر روی'+' /next '+'کلیک کنید.',
+  'end': 'با تشکر از شرکت شما در این نظرسنجی',
   'twice': "شما قبلا در این نظرسنجی شرکت کرده‌اید!",
   'name': "لطفا نام و نام خانوادگی خود را در صورت تمایل وارد کنید.",
   'melliCode': "لطفا کد ملی خود را در صورت تمایل وارد کنید.",
@@ -78,7 +80,8 @@ db.once('open', function () {
 var userSchema = mongoose.Schema({
   chatId: Number,
   name: String,
-  email: String,
+  melliCode: String,
+  mobile: String,
   answers: [String],
   state: Number,
 });
@@ -101,20 +104,20 @@ function createBot() {
       } else if (user) {
         if (user.state == 0) {
           bot.sendMessage(chatId, strings['welcome'])
-          setTimeout(() => {bot.sendMessage(chatId, strings['questions'][0], {
+          setTimeout(() => {bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
               "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
             }})}, 500)
         } else if (user.state < 19) {
           user['answers'].push(msg.text)
-          bot.sendMessage(chatId, strings['connection'], {
+          bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
               "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
             }
           })
         } else if(user.state == 19) {
           user['answers'].push(msg.text)
-          bot.sendMessage(chatId, strings['connection'], {
+          bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
               "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
               "one_time_keyboard": true
