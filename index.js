@@ -25,7 +25,7 @@ var strings = {
   'choice1': "کاملا موافق",
   'choice2': "مجموعا موافق",
   'choice3': "ممتنع",
-  'choice4': "محموعا مخالف",
+  'choice4': "مجموعا مخالف",
   'choice5': "کاملا مخالف",
   'questions': [
     '1-  هر عنوان کتاب تجدید چاپ در چهار سال گذشته : يك امتیاز (موارد تکراری تجدید چاپ یک کتاب در یک سال حذف خواهند شد.)',
@@ -66,7 +66,7 @@ fs.readFile('token.txt', 'utf8', function (err, data) {
     console.log(token)
 });
 
-mongoose.connect('mongodb://localhost/savesampad');
+mongoose.connect('mongodb://localhost/nasherBot');
 
 var db = mongoose.connection;
 
@@ -96,30 +96,35 @@ function createBot() {
         throw err
       if (msg.text == 'reset') {
         console.log(user)
-        user['state'] = 0
+        user['state'] = 1
         user.name = ''
         user.email = ''
         user.answers = []
         user.save()
+        bot.sendMessage(chatId, strings['welcome'])
+        setTimeout(() => {bot.sendMessage(chatId, strings['questions'][0], {
+          "reply_markup": {
+            "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice5'], strings['choice4']]],
+          }})}, 500)
       } else if (user) {
         if (user.state == 0) {
           bot.sendMessage(chatId, strings['welcome'])
           setTimeout(() => {bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
-              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice5'], strings['choice4']]],
             }})}, 500)
         } else if (user.state < 19) {
           user['answers'].push(msg.text)
           bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
-              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice5'], strings['choice4']]],
             }
           })
         } else if(user.state == 19) {
           user['answers'].push(msg.text)
           bot.sendMessage(chatId, strings['questions'][user.state], {
             "reply_markup": {
-              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+              "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice5'], strings['choice4']]],
               "one_time_keyboard": true
             }
           })
@@ -148,7 +153,10 @@ function createBot() {
         user.save()
       } else {
         bot.sendMessage(chatId, strings['welcome'])
-        setTimeout(() => {bot.sendMessage(chatId, strings['name'])},500)
+        setTimeout(() => {bot.sendMessage(chatId, strings['questions'][user.state], {
+          "reply_markup": {
+            "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+          }})}, 500)
         userModel.create({
           'chatId': chatId,
           'state': 1,
