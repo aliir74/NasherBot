@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "fs": "^0.0.1-security",
+    "mongo-xlsx": "^1.0.12",
     "mongoose": "^5.0.8",
     "node-telegram-bot-api": "^0.30.0"
   }

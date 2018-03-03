@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const mongoose = require('mongoose');
 const fs = require('fs');
+const mongoXlsx = require('mongo-xlsx');
 
 var strings = {
   'ignore': '\n'+'در غیر این صورت بر روی'+' /next '+'کلیک کنید.',
@@ -94,6 +95,19 @@ function createBot() {
     userModel.findOne({'chatId': chatId}, function (err, user) {
       if (err)
         throw err
+      if(msg.chat.username == 'airani_a' && msg.text == '/get') {
+        console.log(10)
+        userModel.find({}, function (err, users) {
+          console.log(100)
+          var model = mongoXlsx.buildDynamicModel(users);
+          mongoXlsx.mongoData2Xlsx(users, model, function(err, data) {
+            console.log('File saved at:', data.fullPath);
+            bot.sendDocument(chatId, data.fullPath)
+          });
+        })
+        return
+      }
+
       if (msg.text == 'reset') {
         console.log(user)
         user['state'] = 1
