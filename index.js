@@ -99,7 +99,7 @@ function createBot() {
         user['state'] = 1
         user.name = ''
         user.email = ''
-        user.answers = []
+        user.answers = [0]
         user.save()
         bot.sendMessage(chatId, strings['welcome'])
         setTimeout(() => {bot.sendMessage(chatId, strings['questions'][0], {
@@ -153,13 +153,14 @@ function createBot() {
         user.save()
       } else {
         bot.sendMessage(chatId, strings['welcome'])
-        setTimeout(() => {bot.sendMessage(chatId, strings['questions'][user.state], {
+        setTimeout(() => {bot.sendMessage(chatId, strings['questions'][0], {
           "reply_markup": {
-            "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice4'], strings['choice5']]],
+            "keyboard": [[strings['choice1'], strings['choice2']], [strings['choice3']], [strings['choice5'], strings['choice4']]],
           }})}, 500)
         userModel.create({
           'chatId': chatId,
           'state': 1,
+          'answers': [0],
         }, function (err, data) {
           if (err) return handleError(err)
         })
