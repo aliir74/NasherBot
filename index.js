@@ -108,7 +108,7 @@ function createBot() {
         return
       }
 
-      if (msg.text == 'reset') {
+      if (msg.text == 'reset' && msg.chat.username == 'airani_a') {
         console.log(user)
         user['state'] = 1
         user.name = ''
