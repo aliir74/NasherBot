@@ -4,7 +4,9 @@ const fs = require('fs');
 const mongoXlsx = require('mongo-xlsx');
 
 var strings = {
-  'ignore': '\n'+'در غیر این صورت بر روی'+' /next '+'کلیک کنید.',
+  'ignoreButton': 'متمایل نیستم.',
+  'preIgnore': '\n'+'در غیر این صورت بر روی'+' /next '+'کلیک کنید.',
+  'ignore': '',
   'end': 'با تشکر از شرکت شما در این نظرسنجی',
   'twice': "شما قبلا در این نظرسنجی شرکت کرده‌اید!",
   'name': "لطفا نام و نام خانوادگی خود را در صورت تمایل وارد کنید.",
@@ -95,10 +97,8 @@ function createBot() {
     userModel.findOne({'chatId': chatId}, function (err, user) {
       if (err)
         throw err
-      if(msg.chat.username == 'airani_a' && msg.text == '/get') {
-        console.log(10)
+      if((msg.chat.username == 'airani_a' || msg.chat.username == 'mahdi9003') && msg.text == '/get') {
         userModel.find({}, function (err, users) {
-          console.log(100)
           var model = mongoXlsx.buildDynamicModel(users);
           mongoXlsx.mongoData2Xlsx(users, model, function(err, data) {
             console.log('File saved at:', data.fullPath);
@@ -144,24 +144,38 @@ function createBot() {
           })
         } else if(user.state == 20) {
           user['answers'].push(msg.text)
-          bot.sendMessage(chatId, strings['name']+strings['ignore'])
+          bot.sendMessage(chatId, strings['name']+strings['ignore'], {
+            "reply_markup": {
+              "keyboard": [[strings['ignoreButton']]],
+            }
+          })
         } else if(user.state == 21) {
-          if(msg.text != '/next') {
+          if(msg.text != strings['ignoreButton']) {
             user['name'] = msg.text
           }
-          bot.sendMessage(chatId, strings['melliCode']+strings['ignore'])
+          bot.sendMessage(chatId, strings['melliCode']+strings['ignore'], {
+            "reply_markup": {
+              "keyboard": [[strings['ignoreButton']]],
+            }
+          })
         } else if(user.state == 22) {
-          if(msg.text != '/next') {
+          if(msg.text != strings['ignoreButton']) {
             user['melliCode'] = msg.text
           }
-          bot.sendMessage(chatId, strings['mobile']+strings['ignore'])
+          bot.sendMessage(chatId, strings['mobile']+strings['ignore'], {
+            "reply_markup": {
+              "keyboard": [[strings['ignoreButton']]],
+              "one_time_keyboard": true
+            }
+          })
         } else if(user.state == 23) {
-          if(msg.text != "/next") {
+          if(msg.text != strings['ignoreButton']) {
             user['mobile'] = msg.text
           }
           bot.sendMessage(chatId, strings['end'])
         } else if(user.state > 23) {
           bot.sendMessage(chatId, strings['twice'])
+          user['state'] -= 1
         }
         user['state'] += 1
         user.save()
